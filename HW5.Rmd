@@ -1,0 +1,204 @@
+---
+title: "HW5"
+author: "Leonardo Robles-Lara lr34388"
+date: "2024-02-20"
+output: 
+  html_document:
+  
+---
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,      # Display code in output
+  message = FALSE,  # Suppress messages in output
+  warning = FALSE   # Suppress warnings in output
+)
+library(tidyverse)
+library(mosaic)
+library(ggplot2)
+library(knitr)
+```
+
+# **Problem 1**
+
+## Null Hypothesis: 
+The null hypothesis for this specific problem is as follows: are the trades made by Iron Bank employees being flagged at a normal rate compared to that of the baseline 2.4%?
+
+## Test Statistic:
+The test statistic I am using is that of whether the 70 flagged trades out of the 2021 total trades is comparably significant when compared to the baseline 2.4%.
+
+## Distribution of Simulation
+  
+```{r}
+
+sec_sim <- do(100000)*nflip(n=2021, prob=0.024)
+
+ggplot(data = sec_sim) +
+  geom_histogram(aes(x = nflip), binwidth = 1, col = 'black') +
+  labs(x = "Number of Flagged Trades", y = "Count", title = "Distribution of Flagged Trades")
+
+
+p_value_sec <- sum(sec_sim >= 70)
+
+p_value_final <- p_value_sec/100000
+
+p_value_final
+```
+
+## Conclusion
+Due to the statistically significant p-value of `r p_value_final` we can confidently reject the null hypothesis that the number of flagged trades was of normal circumstances. The number of cases is substantially above the average baseline in terms of statistical significance.
+
+
+# **Problem 2**
+
+## Null Hypothesis: 
+The null hypothesis for this specific problem is as follows: is the rate of health inspection failures lining up with the rate of the city on average at 3%.
+
+## Test Statistic:
+The test statistic I am using is that of whether the 3% of 1500 areas tested compares to the 8 Gourment Bites locations out of 50 is within reasonable  properly.
+
+## Distribution of Simulation
+
+```{r}
+
+health_sim <- do(100000)*nflip(n=50, prob=0.03)
+
+ggplot(data = health_sim) +
+  geom_histogram(aes(x = nflip), binwidth = 1, col = 'black') +
+  labs(x = "Number of Health Violations", y = "Count", title = "Distribution of Health Violations")
+
+
+p_value_health <- sum(health_sim >= 8)
+
+p_value_final2 <- p_value_health/100000
+
+p_value_final2
+
+```
+## Conclusion
+Due to the statistically significant p-value of `r p_value_final2` we can confidently reject the null hypothesis that the amount of health inspection fails is of a normal level. It can subsequently be said with statistical confidence that there is most likely another factor to this issue.
+
+
+# **Problem 3**
+
+## Part A
+
+```{r}
+letter_freq <- read.csv("/Users/leo.rl/Downloads/letter_frequencies.csv")
+lines <- readLines("~/Downloads/brown_sentences.txt")
+
+calculate_chi_squared <- function(line, freq_table) {
+  freq_table$Probability <- freq_table$Probability / sum(freq_table$Probability)
+  
+  clean_line <- toupper(gsub("[^A-Za-z]", "", line))
+  
+  observed_counts <- table(factor(strsplit(clean_line, "")[[1]], levels = freq_table$Letter))
+  
+  total_letters <- sum(observed_counts)
+  
+  expected_counts <- total_letters * freq_table$Probability
+  
+  expected_counts[expected_counts == 0] <- 1
+  
+  chi_squared_stat <- sum((observed_counts - expected_counts)^2 / expected_counts)
+
+  return(chi_squared_stat)
+}
+
+chi_squared_a <- numeric(length(lines))
+
+for (i in seq_along(lines)) {
+  chi_squared_a[i] <- calculate_chi_squared(lines[i], letter_freq)
+}
+
+```
+
+## Part B
+
+```{r, echo = FALSE}
+sentences <- c(
+  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+  "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
+  "He carefully examined the document, looking for any clues that might help solve the mystery.",
+  "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
+  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+  "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone’s expectations."
+)
+
+calculate_chi_squared <- function(sentence, letter_freq_table) {
+  letter_freq_table$Probability <- letter_freq_table$Probability / sum(letter_freq_table$Probability)
+  
+  clean_sentence <- toupper(gsub("[^A-Za-z]", "", sentence))
+  
+  observed_counts <- table(factor(strsplit(clean_sentence, "")[[1]], levels = letter_freq_table$Letter))
+  
+  total_letters <- sum(observed_counts)
+  
+  expected_counts <- total_letters * letter_freq_table$Probability
+  
+  expected_counts[expected_counts == 0] <- 1
+  
+  chi_squared_stat <- sum((observed_counts - expected_counts)^2 / expected_counts)
+
+  return(chi_squared_stat)
+}
+
+chi_squared_values_b <- numeric(length(sentences))
+for (j in seq_along(sentences)) {
+  chi_squared_values_b[j] <- calculate_chi_squared(sentences[j], letter_freq)
+}
+
+calculate_p_values <- function(chi_squared_values, freq_table) {
+  df <- nrow(freq_table) - 1
+  
+  p_values <- pchisq(chi_squared_values, df = df, lower.tail = FALSE)
+  p_values <- round(p_values, 3)
+  
+  return(p_values)
+}
+
+p_values_b <- calculate_p_values(chi_squared_values_b, letter_freq)
+
+p_value_results <- tibble(
+  sentence_num = 1:length(chi_squared_values_b),
+  p_value = p_values_b
+) 
+```
+
+## Results
+Of the sentences analyzed the sentence with the lowest p-value and sebsequently the one that can be assumed to have been written by a LLM was sentence 6. This is because the p-value calculated was 0.
+
+
+```{r, echo = FALSE}
+kable(p_values_b, format = "markdown")
+```
+
+
+## Null Hypothesis: 
+The null hypothesis for this specific problem is as follows: the sentences analyzed follow a predetermined english language pattern.
+
+## Test Statistic:
+Using the chi-square test to gauge the frequencies of certain patterns and letters.
+
+## Distribution of Data
+```{r, echo = FALSE}
+ggplot(p_value_results, aes(x = sentence_num, y = p_value)) + geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = seq(min(p_value_results$sentence_num), max(p_value_results$sentence_num), by = 1)) + labs(x = "Sentence Number", y = "p-value", title = "P-Value for Each Given Sentence")
+```
+
+## Conclusion:
+Referring back to my initial discovery, sentence 6 is the sentence created via a LLM. Setting the standard p-value at 0.05 as a basis, we can figure out which values are most likely to be created by an a LLM. This was discovered through the use of chi-square testing and subsequent individual analysis of the p-values for each of the sentences. This resulted in the p-value for sentence 6 to be the lowest and thus giving me reasonable cause statistically to come to my conclusion.
+
+
+
+
+
+
+
+
+
+
