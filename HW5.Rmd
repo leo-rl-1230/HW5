@@ -9,15 +9,18 @@ output:
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 knitr::opts_chunk$set(
-  echo = FALSE,      # Display code in output
-  message = FALSE,  # Suppress messages in output
-  warning = FALSE   # Suppress warnings in output
+  echo = FALSE,      
+  message = FALSE,  
+  warning = FALSE   
 )
 library(tidyverse)
 library(mosaic)
 library(ggplot2)
 library(knitr)
 ```
+
+
+[Click here for Github link](https://github.com/leo-rl-1230/HW2.git)
 
 # **Problem 1**
 
